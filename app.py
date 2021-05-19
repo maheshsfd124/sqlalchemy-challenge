@@ -2,6 +2,7 @@ import numpy as np
 from numpy.core.arrayprint import DatetimeFormat
 
 import sqlalchemy
+import datetime as dt
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
@@ -103,6 +104,38 @@ def tobs():
         all_prcp_prev.append(prcp_dict_prev)
     
     return jsonify(all_prcp_prev)
+@app.route("/api/v1.0/<start>")
+def start(start):
+    start=start
+        # Create our session (link) from Python to the DB
+    session = Session(engine)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    """Return a list of all passenger names"""
+    # Query all passengers
+    results=session.query(func.avg(Measurement.tobs),func.min(Measurement.tobs),func.max(Measurement.tobs)).\
+                    filter(Measurement.date >= start).all()
+
+    session.close()
+    start_list = list(np.ravel(results))
+    return jsonify(start_list)
+
+
+@app.route("/api/v1.0/<start>/<end>")
+def start_end(start,end):
+    start=start
+    end=end
+        # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    """Return a list of all passenger names"""
+    # Query all passengers
+    results=session.query(func.avg(Measurement.tobs),func.min(Measurement.tobs),func.max(Measurement.tobs)).\
+                    filter(Measurement.date >= start).\
+                    filter(Measurement.date <= end).all()
+
+    session.close()
+    start_end_list = list(np.ravel(results))
+    return jsonify(start_end_list)
+
+if __name__ == '__main__': 
+        app.run(debug=True)
